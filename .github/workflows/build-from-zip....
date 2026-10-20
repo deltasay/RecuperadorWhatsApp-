@@ -1,0 +1,46 @@
+
+name: Compilar APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar archivos
+        uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "11"
+
+      - name: Instalar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Descomprimir proyecto
+        run: |
+          unzip -o RecuperadorWhatsApp_compilacion_nube.zip -d proyecto
+
+      - name: Instalar plataforma Android
+        run: sdkmanager "platforms;android-32" "build-tools;32.0.0"
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "7.5"
+
+      - name: Compilar APK
+        run: gradle -p proyecto assembleDebug
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RecuperadorWhatsApp-debug
+          path: proyecto/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
